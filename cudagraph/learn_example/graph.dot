@@ -1,0 +1,30 @@
+digraph dot {
+subgraph cluster_1 {
+label="graph_1" graph[style="dashed"];
+"graph_1_node_0"[style="solid" shape="record" label="{
+MEM_ALLOC
+| {{ID | node handle} | {0 (topoId: 2) | 0x0000556D004CA530}}
+| {{{poolProps | {allocType | handleTypes | {location | {type | id}}} | {PINNED | NONE | DEVICE | 0}}}}
+| {{bytesize | dptr} | {1073741824 | 0x00000021C6000000}}
+}"];
+
+"graph_1_node_1"[style="bold" shape="record" label="{KERNEL
+| {ID | 1 (topoId: 1) | _Z9addKernelPiS_S_i\<\<\<1048576,256,0\>\>\>}
+| {{node handle | func handle} | {0x0000556D004CAC90 | 0x0000556D001FF0A0}}
+| {accessPolicyWindow | {base_ptr | num_bytes | hitRatio | hitProp | missProp} | {0x0000000000000000 | 0 | 0.000000 | N | N}}
+| {cooperative | 0}
+| {priority | 0}
+}"];
+
+"graph_1_node_2"[style="solid" shape="record" label="{
+MEMCPY
+| {{ID | node handle} | {2 (topoId: 0) | 0x0000556D004CB3A0}}
+| {kind | DtoH (DEVICE to HOST PAGEABLE)}
+| {{srcPtr | dstPtr} | {pitch | ptr | xsize | ysize | pitch | ptr | xsize | ysize} | {0 | 0x00000021C6000000 | 0 | 0 | 0 | 0x00007F8BCFFFD010 | 0 | 0}}
+| {{srcPos | {{x | 0} | {y | 0} | {z | 0}}} | {dstPos | {{x | 0} | {y | 0} | {z | 0}}} | {Extent | {{Width | 1073741824} | {Height | 1} | {Depth | 1}}}}
+}"];
+
+"graph_1_node_0" -> "graph_1_node_1" [headlabel=0];
+"graph_1_node_1" -> "graph_1_node_2" [headlabel=0];
+}
+}

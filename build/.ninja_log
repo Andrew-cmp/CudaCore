@@ -1,0 +1,4 @@
+# ninja log v5
+0	6	0	clean	a31eedcededa8236
+0	974	1744960368909896111	reduce/CMakeFiles/reduce_v0.dir/reduce_v0.cu.o	73337a20cefd0258
+977	1032	1744960369001894988	reduce/reduce_v0	bb6325b2ba3fedf3

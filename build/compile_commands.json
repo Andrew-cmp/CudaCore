@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/houhw/cuda_learning_practice_and_notes/build",
+  "command": "/usr/local/cuda/bin/nvcc -forward-unknown-to-host-compiler -isystem=/usr/local/cuda/include -g --generate-code=arch=compute_75,code=[compute_75,sm_75] -G -x cu -c /home/houhw/cuda_learning_practice_and_notes/reduce/reduce_v0.cu -o reduce/CMakeFiles/reduce_v0.dir/reduce_v0.cu.o",
+  "file": "/home/houhw/cuda_learning_practice_and_notes/reduce/reduce_v0.cu"
+}
+]
