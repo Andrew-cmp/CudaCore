@@ -1,4 +1,0 @@
-/home/houhw/cuda_learning_practice_and_notes/gemm/GPU/build/CMakeFiles/gemm_v0.dir
-/home/houhw/cuda_learning_practice_and_notes/gemm/GPU/build/CMakeFiles/gemm_v1.dir
-/home/houhw/cuda_learning_practice_and_notes/gemm/GPU/build/CMakeFiles/edit_cache.dir
-/home/houhw/cuda_learning_practice_and_notes/gemm/GPU/build/CMakeFiles/rebuild_cache.dir

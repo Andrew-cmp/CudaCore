@@ -1,4 +1,34 @@
 third-party
-*.nsys-rep
+# CUDA / C++ 编译产物
+*.o
+*.obj
+*.a
+*.so
+*.so.*
+*.dll
+*.dylib
+*.exe
+*.ptx
+*.cubin
+*.fatbin
 
+# Nsight 性能分析文件
+*.nsys-rep
+*.ncu-rep
+*.qdrep
 *.sqlite
+
+# 构建目录
+build/
+bin/
+out/
+cmake-build-*/
+
+# GEMM benchmark runtime output
+/gemm/GPU/sgemm_benchmark_*.csv
+/gemm/GPU/profiles/
+/gemm/results/
+
+# Python cache
+__pycache__/
+*.py[cod]
