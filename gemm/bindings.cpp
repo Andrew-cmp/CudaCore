@@ -17,6 +17,11 @@ void launch_gemm_v2(int, int, int, float*, float*, float*, cudaStream_t);
 void launch_gemm_v3(int, int, int, float*, float*, float*, cudaStream_t);
 void launch_gemm_v4(int, int, int, float*, float*, float*, cudaStream_t);
 void launch_gemm_v5(int, int, int, float*, float*, float*, cudaStream_t);
+void launch_gemm_v2_warp_tiling(
+    int, int, int, float*, float*, float*, cudaStream_t);
+void launch_gemm_v2_warp_tiling_swizzle(
+    int, int, int, float*, float*, float*, cudaStream_t);
+void launch_gemm_test(int, int, int, float*, float*, float*, cudaStream_t);
 cublasStatus_t launch_cublas_sgemm(
     int, int, int, const float*, const float*, float*, cudaStream_t, bool);
 
@@ -131,5 +136,19 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, module) {
     module.def("gemm_v5", [](const torch::Tensor& a, const torch::Tensor& b,
                               const torch::Tensor& c) {
         run_gemm(a, b, c, launch_gemm_v5);
+    });
+    module.def("gemm_v2_warp_tiling",
+               [](const torch::Tensor& a, const torch::Tensor& b,
+                  const torch::Tensor& c) {
+                   run_gemm(a, b, c, launch_gemm_v2_warp_tiling);
+               });
+    module.def("gemm_v2_warp_tiling_swizzle",
+               [](const torch::Tensor& a, const torch::Tensor& b,
+                  const torch::Tensor& c) {
+                   run_gemm(a, b, c, launch_gemm_v2_warp_tiling_swizzle);
+               });
+    module.def("gemm_test", [](const torch::Tensor& a, const torch::Tensor& b,
+                                const torch::Tensor& c) {
+        run_gemm(a, b, c, launch_gemm_test);
     });
 }

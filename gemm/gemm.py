@@ -45,10 +45,18 @@ from torch.utils.cpp_extension import load
 ROOT = Path(__file__).resolve().parent
 BUILD_DIR = ROOT / "build"
 RESULTS_DIR = ROOT / "results"
-KERNEL_NAMES = tuple(f"gemm_v{i}" for i in range(6))
+KERNEL_NAMES = tuple(f"gemm_v{i}" for i in range(6)) + (
+    "gemm_v2_warp_tiling", "gemm_v2_warp_tiling_swizzle", "gemm_test")
 DEFAULT_CHECK_SHAPES = ((64, 64, 32), (128, 192, 96), (256, 128, 320))
+ALIGNED_128_CHECK_SHAPES = (
+    (128, 128, 16), (256, 128, 320), (256, 256, 96))
+KERNEL_CHECK_SHAPES = {
+    "gemm_v2_warp_tiling": ALIGNED_128_CHECK_SHAPES,
+    "gemm_v2_warp_tiling_swizzle": ALIGNED_128_CHECK_SHAPES,
+    "gemm_test": ALIGNED_128_CHECK_SHAPES,
+}
 DEFAULT_BENCH_SHAPES = ((256, 256, 256), (512, 512, 512),
-                        (1024, 1024, 1024), (2048, 2048, 2048))
+                        (1024, 1024, 1024), (2048, 2048, 2048),(4096, 4096, 4096))
 
 
 def parse_shape(value: str) -> tuple[int, int, int]:
@@ -102,13 +110,15 @@ def validate_kernels(
 ) -> bool:
     print("\nCorrectness (reference: cuBLAS FP32)")
     all_correct = True
-    for shape in shapes:
-        a, b = make_inputs(shape)
-        reference = torch.empty(
-            (shape[0], shape[1]), device="cuda", dtype=torch.float32)
-        cublas_sgemm(a, b, reference, False)
-        shape_text = "x".join(map(str, shape))
-        for name, kernel in kernels.items():
+    default_shapes = tuple(shapes)
+    for name, kernel in kernels.items():
+        check_shapes = KERNEL_CHECK_SHAPES.get(name, default_shapes)
+        for shape in check_shapes:
+            a, b = make_inputs(shape)
+            reference = torch.empty(
+                (shape[0], shape[1]), device="cuda", dtype=torch.float32)
+            cublas_sgemm(a, b, reference, False)
+            shape_text = "x".join(map(str, shape))
             output = torch.zeros_like(reference)
             kernel(a, b, output)
             difference = (output - reference).abs()
@@ -118,7 +128,7 @@ def validate_kernels(
             correct = finite and torch.allclose(output, reference, rtol=rtol, atol=atol)
             all_correct &= correct
             status = "PASS" if correct else "FAIL"
-            print(f"  {shape_text:>15}  {name:<8} {status}  "
+            print(f"  {shape_text:>15}  {name:<20} {status}  "
                   f"max_abs={max_abs:.3e}  max_rel={max_rel:.3e}")
     return all_correct
 

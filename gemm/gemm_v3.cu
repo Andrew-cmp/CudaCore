@@ -18,7 +18,11 @@ __device__ __forceinline__ float4 load4(const float* p) {
 }
 
 //仅对M、K进行tile，这种情况下K不能太大，否则sharedmem不够用
-__global__ void gemm_v3(int M, int N, int K, float alpha,float* A,float* B, float beta,float* C){
+__global__ void gemm_v3(
+    int M, int N, int K,
+    const float* __restrict__ A,
+    const float* __restrict__ B,
+    float* __restrict__ C) {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
     const int bx = blockIdx.x;
@@ -53,9 +57,6 @@ __global__ void gemm_v3(int M, int N, int K, float alpha,float* A,float* B, floa
     int load_smem_b_k = tid / load_threads_b_n;
     int load_smem_b_n = tid % (load_threads_b_n)* 4;
 
-    const int ldg_a_num = BLOCK_SIZE_K * BLOCK_SIZE_M / THREAD_NUM_PER_BLOCK / 4;
-    // 使用float4寄存缓存，避免对float数组做未对齐的float4写入
-    float4 ldg_a_reg[ldg_a_num];
     //这个thread block所独属于的globalmem 起始地址的计算
     A = &A[by*BLOCK_SIZE_M*K];
     B = &B[bx*BLOCK_SIZE_N];
@@ -127,12 +128,14 @@ __global__ void gemm_v3(int M, int N, int K, float alpha,float* A,float* B, floa
     }
     __syncthreads();
   }
-  // 将每线程累加结果写回全局内存（标量方式，避免未对齐）
-  for(int i = 0;i < THREAD_SIZE_M;i++){
-    for(int j = 0;j < THREAD_SIZE_N;j++){
-      int idx = OFFSET(comp_m+i, comp_n+j, N);
-      C[idx] = alpha * sum[i][j] + beta * C[idx];
-      
+  // launcher 的语义固定为 C=A*B；每4个连续结果合并成一次float4写回。
+  #pragma unroll
+  for (int i = 0; i < THREAD_SIZE_M; ++i) {
+    #pragma unroll
+    for (int j = 0; j < THREAD_SIZE_N; j += 4) {
+      FETCH(C[OFFSET(comp_m + i, comp_n + j, N)]) =
+          make_float4(sum[i][j + 0], sum[i][j + 1],
+                      sum[i][j + 2], sum[i][j + 3]);
     }
   }
 }
@@ -143,5 +146,5 @@ void launch_gemm_v3(
     const dim3 block(THREAD_SIZE_PER_BLCOK_N, THREAD_SIZE_PER_BLCOK_M);
     const dim3 grid((N + BLOCK_SIZE_N - 1) / BLOCK_SIZE_N,
                     (M + BLOCK_SIZE_M - 1) / BLOCK_SIZE_M);
-    gemm_v3<<<grid, block, 0, stream>>>(M, N, K, 1.0f, A, B, 0.0f, C);
+    gemm_v3<<<grid, block, 0, stream>>>(M, N, K, A, B, C);
 }
